@@ -1,4 +1,3 @@
-English | [中文](./README.zh-CN.md)
 ## Ultra-Wideband Swarm Ranging
 This repository contains the implementation of the paper:  
 **Ultra-Wideband Swarm Ranging**. [Feng Shan](http://twinhorse.net/), Jiaxin Zeng, Zengbao Li, [Junzhou Luo](https://cse.seu.edu.cn/2019/0102/c23024a257045/page.htm), [Weiwei Wu](https://cse.seu.edu.cn/2019/0103/c23024a257230/page.htm). *INFOCOM 2021*. [PDF](http://twinhorse.net/papers/SZLLW-INFOCOM21p.pdf),  
@@ -18,8 +17,6 @@ If you find this repository helpful for your work, please kindly cite the follow
   organization={IEEE}
 }
 ```
-
-![](./docs/images/uwb_swarm_ranging.png)
 
 ## How to run it
 
