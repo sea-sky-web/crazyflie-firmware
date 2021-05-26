@@ -46,3 +46,43 @@ cfloader flash path/to/cf2.bin stm32-fw
 ```
 
 If you have any question, please issue the project or [email](mailto:shanfeng@seu.edu.cn) us and we will reply you soon.
+## Contributors
+
+<table>
+    <tbody>
+        <tr>
+            <td align="center">
+                <a href="https://github.com/twinhorse"><img alt="" src="https://avatars.githubusercontent.com/twinhorse"
+                        width="100px;"><br><sub><b>twinhorse</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=twinhorse" title="code">💻</a>
+            </td> </a></td>
+            <td align="center">
+                <a href="https://github.com/YuchaoS"><img alt="" src="https://avatars.githubusercontent.com/YuchaoS"
+                        width="100px;"><br><sub><b>YuchaoS</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=YuchaoS" title="code">💻</a>
+            </td> </a></td>
+            <td align="center">
+                <a href="https://github.com/inf1nityhhd"><img alt=""
+                        src="https://avatars.githubusercontent.com/inf1nityhhd"
+                        width="100px;"><br><sub><b>inf1nityhhd</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=inf1nityhhd"
+                    title="code">💻</a>
+            </td> </a></td>
+            <td align="center">
+                <a href="https://github.com/RavenLite"><img alt="" src="https://avatars.githubusercontent.com/RavenLite"
+                        width="100px;"><br><sub><b>RavenLite</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=RavenLite" title="code">💻</a>
+            </td> </a></td>
+            <td align="center">
+                <a href="https://github.com/aqqz"><img alt="" src="https://avatars.githubusercontent.com/aqqz"
+                        width="100px;"><br><sub><b>aqqz</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=aqqz" title="code">💻</a>
+            </td> </a></td>            
+            <td align="center">
+                <a href="https://github.com/Withod"><img alt="" src="https://avatars.githubusercontent.com/Withod"
+                        width="100px;"><br><sub><b>Withod</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=Withod" title="code">💻</a>
+            </td> </a></td>
+        </tr>
+    </tbody>
+</table>
