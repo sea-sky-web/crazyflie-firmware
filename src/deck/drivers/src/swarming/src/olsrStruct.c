@@ -1071,7 +1071,7 @@ void olsrPrintRoutingSet(olsrRoutingSet_t *routingSet)
   while(it != -1)
     {
       olsrRoutingSetItem_t routeNode = routingSet->setData[it];
-      DEBUG_PRINT_OLSR_APP("Dest:%d,Next:%d,weight%f\n",routeNode.data.m_destAddr,routeNode.data.m_nextAddr,routeNode.data.m_weight);
+      DEBUG_PRINT_OLSR_ROUTING("Dest:%d,Next:%d,weight%f\n",routeNode.data.m_destAddr,routeNode.data.m_nextAddr,routeNode.data.m_weight);
       it = routeNode.next;
     } 
 }

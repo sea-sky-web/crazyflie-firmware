@@ -38,6 +38,7 @@ static uint16_t idVelocityZ;
 static float velocity;
 static int16_t distanceTowards[50];
 int jitter = 0;
+int flag=0;
 
 int olsr_ts_otspool_idx = 0;
 olsrTimestampTuple_t olsr_ts_otspool[TS_OTSPOOL_MAXSIZE] = {0};
@@ -57,12 +58,12 @@ bool olsrTopologyTupleTimerExpire();
 
 static void olsrSendQueueInit()
 {
-  g_olsrSendQueue = xQueueCreate(8,sizeof(olsrMessage_t));
+  g_olsrSendQueue = xQueueCreate(15,sizeof(olsrMessage_t));
   DEBUG_PRINT_OLSR_SYSTEM("SEND_QUEUE_INIT_SUCCESSFUL\n");
 }
 static void olsrRecvQueueInit()
 {
-  g_olsrRecvQueue = xQueueCreate(8,sizeof(packetWithTimestamp_t));
+  g_olsrRecvQueue = xQueueCreate(15,sizeof(packetWithTimestamp_t));
   DEBUG_PRINT_OLSR_SYSTEM("RECV_QUEUE_INIT_SUCCESSFUL\n");
 }
 void olsrDeviceInit(dwDevice_t *dev){
@@ -308,6 +309,33 @@ static uint16_t getAnsn()
   return retVal;
 }
 
+#ifdef USER_ROUTING
+float distanceToPacketLoss(int16_t distance)
+{
+  if(distance<=0) return 0;
+  if(distance>=1000) return 1;
+  if(distance>=100) return 0.5;
+  float res = 1.0;
+  
+  return res*distance/1000;
+}
+
+olsrWeight_t distanceToWeight(int16_t distance)
+{
+  return 1-distanceToPacketLoss(distance);
+}
+
+int16_t getDistanceFromAddr(olsrAddr_t addr)
+{
+ #ifdef DISTANCE_SIM
+ return getDistanceFromOnboardSim(myAddress,addr);
+ #else
+ return distanceTowards[addr];
+ #endif
+}
+
+#endif
+
 static void addNeighborTuple(olsrNeighborSet_t* neighborSet ,const olsrNeighborTuple_t* tuple)
 {
   olsrInsertToNeighborSet(neighborSet,tuple);
@@ -492,10 +520,10 @@ void populateTwoHopNeighborSet(const olsrMessage_t* helloMsg)
 {
   olsrTime_t now = xTaskGetTickCount();
   olsrAddr_t sender = helloMsg->m_messageHeader.m_originatorAddress;
+  setIndex_t linkTuple = olsrFindInLinkByAddr(&olsrLinkSet, sender);
   #ifdef USER_ROUTING
   olsrWeight_t n1Weight = distanceToWeight(getDistanceFromAddr(sender));
   #endif
-  setIndex_t linkTuple = olsrFindInLinkByAddr(&olsrLinkSet, sender);
   if(linkTuple != -1)
     {
       olsrHelloMessage_t* helloMsgBody = (olsrHelloMessage_t*)helloMsg->m_messagePayload;
@@ -514,8 +542,9 @@ void populateTwoHopNeighborSet(const olsrMessage_t* helloMsg)
                 {
                   olsrTwoHopNeighborSet.setData[twoHopNeighborTuple].data.m_expirationTime = now+\
                                                     helloMsg->m_messageHeader.m_vTime;
-                  #ifdef USER_ROUTING
-                  olsrTwoHopNeighborSet.setData[twoHopNeighborTuple].data.m_weight = \
+                  #ifdef USER_ROUTING                                 
+                    //olsrTwoHopNeighborSet.setData[twoHopNeighborTuple].data.m_weight=(1-distanceToPacketLoss(getDistanceFromAddr(sender)))*helloMsgBody->m_linkMessage[i].m_weight;
+                    olsrTwoHopNeighborSet.setData[twoHopNeighborTuple].data.m_weight = \
                   n1Weight*helloMsgBody->m_linkMessage[i].m_weight;
                   #endif
                 }
@@ -525,8 +554,9 @@ void populateTwoHopNeighborSet(const olsrMessage_t* helloMsg)
                   newTuple.m_neighborAddr = sender;
                   newTuple.m_twoHopNeighborAddr = candidate;
                   newTuple.m_expirationTime = now+helloMsg->m_messageHeader.m_vTime;
-                  #ifdef USER_ROUTING
-                  newTuple.m_weight = n1Weight*helloMsgBody->m_linkMessage[i].m_weight;
+                  #ifdef USER_ROUTING 
+                  //newTuple.m_weight=(1-distanceToPacketLoss(getDistanceFromAddr(sender)))*helloMsgBody->m_linkMessage[i].m_weight;
+                   newTuple.m_weight = n1Weight*helloMsgBody->m_linkMessage[i].m_weight;
                   #endif
                   addTwoHopNeighborTuple(&newTuple);
                 }
@@ -845,9 +875,10 @@ void olsrProcessTc(const olsrMessage_t* tcMsg)
 void olsrProcessData(olsrMessage_t* msg)
 {
   olsrDataMessage_t* dataMsg = (olsrDataMessage_t *)msg->m_messagePayload;
+  //DEBUG_PRINT_OLSR_ROUTING("receive data message,the dest is:%d,the next is:%d,the seq is:%d\n",msg->m_messageHeader.m_destinationAddress,dataMsg->m_dataHeader.m_nextHop,dataMsg->m_dataHeader.m_seq);
   if(dataMsg->m_dataHeader.m_nextHop != myAddress)
     {
-      DEBUG_PRINT_OLSR_APP("seq =%d m_nextHop!=myAddress is %d\n",dataMsg->m_dataHeader.m_seq,dataMsg->m_dataHeader.m_nextHop);
+      //DEBUG_PRINT_OLSR_ROUTING("m_nextHop!=myAddress,the m_nextHop is:%d\n",dataMsg->m_dataHeader.m_nextHop);
       return;
     }
   if(msg->m_messageHeader.m_destinationAddress == myAddress)
@@ -855,7 +886,8 @@ void olsrProcessData(olsrMessage_t* msg)
       //up
       if(adHocPortIsUsed(dataMsg->m_dataHeader.m_destPort))
         {
-          DEBUG_PRINT_OLSR_ROUTING("add DataMessage to Queue\n");
+          //DEBUG_PRINT_OLSR_ROUTING("add DataMessage to Queue\n");
+          DEBUG_PRINT_OLSR_ROUTING("the hop count is:%d,flag is:%d\n",msg->m_messageHeader.m_hopCount,flag);
           adHocAddToQueue(dataMsg->m_dataHeader.m_destPort,dataMsg);
         }
       else
@@ -866,17 +898,28 @@ void olsrProcessData(olsrMessage_t* msg)
     }
   else
     {
+      if(adHocPortIsUsed(dataMsg->m_dataHeader.m_destPort))
+        {
+          //DEBUG_PRINT_OLSR_ROUTING("add DataMessage to Queue\n");
+          DEBUG_PRINT_OLSR_ROUTING("the hop count is:%d,flag is:%d\n",msg->m_messageHeader.m_hopCount,flag);
+          adHocAddToQueue(dataMsg->m_dataHeader.m_destPort,dataMsg);
+        }
+      else
+        {
+          DEBUG_PRINT_OLSR_ROUTING("this port is not used in data Process\n");
+          return;
+        }
       setIndex_t nextHopIndex = olsrFindInRoutingTable(&olsrRoutingSet,msg->m_messageHeader.m_destinationAddress);
       if(nextHopIndex != -1)
         {
           dataMsg->m_dataHeader.m_nextHop = olsrRoutingSet.setData[nextHopIndex].data.m_nextAddr; 
+           DEBUG_PRINT_OLSR_ROUTING("forward to the next hop\n");
         }
       else
         {
-          DEBUG_PRINT_OLSR_APP("seq =%d can not find next hop\n",dataMsg->m_dataHeader.m_seq);
+          DEBUG_PRINT_OLSR_ROUTING("can not find next hop\n");
           return;
         }
-      DEBUG_PRINT_OLSR_APP("forward send data with seq:%d\n",dataMsg->m_dataHeader.m_seq);
       msg->m_messageHeader.m_relayAddress = myAddress;
       msg->m_messageHeader.m_timeToLive--;
       msg->m_messageHeader.m_hopCount++;
@@ -921,29 +964,25 @@ void forwardDefault(olsrMessage_t* olsrMessage, setIndex_t duplicateIndex)
       addDuplicateTuple(&olsrDuplicateSet, &newDup);
     }
 }
-#ifdef USER_ROUTING
-float distanceToPacketLoss(int16_t distance)
-{
-
-  if(distance<=0) return 0;
-  if(distance>=1000) return 1;
-  float res = 1.0;
+// #ifdef USER_ROUTING
+// float distanceToPacketLoss(int16_t distance)
+// {
+//   if(distance<=0) return 0;
+//   if(distance>=1000) return 1;
+//   float res = 1.0;
   
-  return res*distance/1000;
-}
-olsrWeight_t distanceToWeight(int16_t distance)
-{
-  return 1-distanceToPacketLoss(distance);
-}
-int16_t getDistanceFromAddr(olsrAddr_t addr)
-{
- #ifdef DISTANCE_SIM
- return getDistanceFromOnboardSim(myAddress,addr);
- #else
- return distanceTowards[addr];
- #endif
-}
-#endif
+//   return res*distance/1000;
+// }
+// int16_t getDistanceFromAddr(olsrAddr_t addr)
+// {
+//  #ifdef DISTANCE_SIM
+//  return getDistanceFromOnboardSim(myAddress,addr);
+//  #else
+//  return distanceTowards[addr];
+//  #endif
+// }
+
+// #endif
 //switch to tc|hello|ts process
 void olsrPrintPacket(const packet_t* rxPacket, const char* msgStr)
 {
@@ -1171,9 +1210,9 @@ void olsrRoutingTableComputation()
       self.m_nextAddr = olsrNeighborSet.setData[neighborIt].data.m_neighborAddr;
     #ifdef USER_ROUTING
       int16_t distTmp = getDistanceFromAddr(self.m_destAddr);
-     
       self.m_weight = distanceToWeight(distTmp);
-      // DEBUG_PRINT_OLSR_ROUTING("%d to %d's distance is %d\n",myAddress,self.m_destAddr,distTmp);
+      //self.m_weight = 1 - distanceToPacketLoss(distTmp);
+      //DEBUG_PRINT_OLSR_ROUTING("%d to %d's distance is %d\n",myAddress,self.m_destAddr,distTmp);
     #else
       self.m_distance = 1;
     #endif
@@ -1181,38 +1220,50 @@ void olsrRoutingTableComputation()
       neighborIt = olsrNeighborSet.setData[neighborIt].next;
     }
 
-  setIndex_t twoHopNeighborIt = olsrTwoHopNeighborSet.fullQueueEntry;
-  while(twoHopNeighborIt!=-1)
-  {
-    olsrTwoHopNeighborSetItem_t n2Item = olsrTwoHopNeighborSet.setData[twoHopNeighborIt];
-    olsrAddr_t n2Addr = n2Item.data.m_twoHopNeighborAddr;
-    setIndex_t routeIt =  olsrFindInRoutingTable(&tmpRoutingSet,n2Addr);
-    if(routeIt!=-1)
+    setIndex_t TwoHopNeighborIt=olsrTwoHopNeighborSet.fullQueueEntry;
+    while(TwoHopNeighborIt!=-1)
+    {
+      olsrRoutingTuple_t routingTmp;
+      routingTmp.m_destAddr=olsrTwoHopNeighborSet.setData[TwoHopNeighborIt].data.m_twoHopNeighborAddr;
+      routingTmp.m_nextAddr=olsrTwoHopNeighborSet.setData[TwoHopNeighborIt].data.m_neighborAddr;
+      #ifdef USER_ROUTING
+      #ifdef DISTANCE_SIM
+      int16_t distTmp = getDistanceFromOnboardSim(routingTmp.m_nextAddr,routingTmp.m_destAddr);
+      routingTmp.m_weight=(1-distanceToPacketLoss(getDistanceFromAddr(routingTmp.m_nextAddr)))*(1-distanceToPacketLoss(distTmp));
+      #else
+      routingTmp.m_weight=olsrTwoHopNeighborSet.setData[TwoHopNeighborIt].data.m_weight;
+      #endif
+      #endif
+      setIndex_t routingIt = tmpRoutingSet.fullQueueEntry;
+      bool isFound = false;
+      while (routingIt!=-1)
       {
-        #ifdef USER_ROUTING
-        if(tmpRoutingSet.setData[routeIt].data.m_weight<n2Item.data.m_weight)
+        if(tmpRoutingSet.setData[routingIt].data.m_destAddr ==routingTmp.m_destAddr)
+        {
+          isFound=true;
+          if(tmpRoutingSet.setData[routingIt].data.m_weight<routingTmp.m_weight)
           {
-            tmpRoutingSet.setData[routeIt].data.m_nextAddr = n2Item.data.m_neighborAddr;
-            tmpRoutingSet.setData[routeIt].data.m_weight = n2Item.data.m_weight;
+             tmpRoutingSet.setData[routingIt].data.m_weight = routingTmp.m_weight;
+             tmpRoutingSet.setData[routingIt].data.m_nextAddr = routingTmp.m_nextAddr;
           }
-        #endif 
+        }
+        routingIt = tmpRoutingSet.setData[routingIt].next;
       }
-    else
+      if(!isFound)
       {
-        olsrRoutingTuple_t newT;
-        newT.m_expirationTime = now + OLSR_ROUTING_SET_HOLD_TIME;
-        newT.m_nextAddr = n2Item.data.m_neighborAddr;
-        newT.m_destAddr = n2Item.data.m_twoHopNeighborAddr;
-        #ifdef USER_ROUTING
-        newT.m_weight = n2Item.data.m_weight;
-        #endif
-        olsrRoutingSetInsert(&tmpRoutingSet,&self);
+       self.m_destAddr = routingTmp.m_destAddr;
+       self.m_nextAddr = routingTmp.m_nextAddr;
+       #ifdef USER_ROUTING
+       self.m_weight = routingTmp.m_weight;
+       #endif
+       olsrRoutingSetInsert(&tmpRoutingSet,&self);
       }
-    twoHopNeighborIt = n2Item.next;
-  }  
-  
+      TwoHopNeighborIt=olsrTwoHopNeighborSet.setData[TwoHopNeighborIt].next;
+    }
+
   bool somethingChanged = true;
 
+  
   while(somethingChanged)
     { 
       somethingChanged = false;  
@@ -1330,7 +1381,6 @@ void olsrPacketDispatch(const packetWithTimestamp_t * rxPacketWts)
       bool doForward = true;
       setIndex_t duplicated = olsrFindInDuplicateSet(&olsrDuplicateSet,messageHeader->m_originatorAddress,\
                                                      messageHeader->m_messageSeq);
-      if(type == DATA_MESSAGE) duplicated = -1;
       if(duplicated == -1)
         {
           switch (type) 
@@ -1397,6 +1447,7 @@ void olsrSendHello()
   msg.m_messageHeader.m_timeToLive = 0xff;
   msg.m_messageHeader.m_hopCount = 0;
   msg.m_messageHeader.m_messageSeq = getMessageSeqNumber();
+ 
   //hello message
   olsrHelloMessage_t helloMessage;//84
   helloMessage.m_helloHeader.m_hTime = OLSR_HELLO_INTERVAL; //hello's header on packet
@@ -1467,10 +1518,14 @@ void olsrSendHello()
         olsrLinkMessage_t linkMessage;//6
         linkMessage.m_linkCode = (linkType & 0x03) | ((nbType << 2) & 0x0f);
         linkMessage.m_addressUsedSize = 1;
-        #ifdef USER_ROUTING
-        linkMessage.m_weight = distanceToWeight(getDistanceFromAddr(olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr));
-        #endif
         linkMessage.m_addresses = olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr;
+        #ifdef USER_ROUTING 
+        //int16_t distTmp = getDistanceFromAddr(linkMessage.m_addresses);
+        // float lostrate=distanceToPacketLoss(distTmp);
+        // linkMessage.m_weight=1-lostrate;
+        linkMessage.m_weight = distanceToWeight(getDistanceFromAddr(olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr));
+       // DEBUG_PRINT_OLSR_ROUTING("to %d's distance is %d,weight is:%f\n",linkMessage.m_addresses,distTmp,linkMessage.m_weight);
+        #endif
         if(helloMessage.m_helloHeader.m_linkMessageNumber==LINK_MESSAGE_MAX_NUM) break;
         helloMessage.m_linkMessage[helloMessage.m_helloHeader.m_linkMessageNumber++] = linkMessage;
         linkTupleIndex = olsrLinkSet.setData[linkTupleIndex].next;
@@ -1532,7 +1587,6 @@ void olsrSendData(olsrAddr_t sourceAddr,AdHocPort sourcePort,\
   msg.m_messageHeader.m_destinationAddress = destAddr;
 
   setIndex_t nextHopIndex = olsrFindInRoutingTable(&olsrRoutingSet,destAddr);
-  
   if(nextHopIndex == -1)
     {
       DEBUG_PRINT_OLSR_ROUTING("can not find next hop\n");
@@ -1555,7 +1609,6 @@ void olsrSendData(olsrAddr_t sourceAddr,AdHocPort sourcePort,\
   msg.m_messageHeader.m_messageSize+=sizeof(olsrDataMessageHeader_t)+length;
   xSemaphoreGive(olsrAllSetLock);
   xQueueSend(g_olsrSendQueue,&msg,portMAX_DELAY);
-  
 }
 
 olsrTime_t olsrSendTs() {
@@ -1845,11 +1898,6 @@ void olsrSendTask(void *ptr) {
     while (hasOlsrMessageCache || xQueueReceive(g_olsrSendQueue, &olsrMessageCache, timeToWaitForSendQueue)) {
       timeToWaitForSendQueue = 0;
       hasOlsrMessageCache = false;
-      if(olsrMessageCache.m_messageHeader.m_messageType==DATA_MESSAGE)
-      {
-        olsrDataMessageHeader_t* data = (olsrDataMessageHeader_t *)olsrMessageCache.m_messagePayload;
-        DEBUG_PRINT_OLSR_APP("in sendTask%d\n",data->m_seq);
-      }
       configASSERT(olsrMessageCache.m_messageHeader.m_messageSize <= MESSAGE_MAX_LENGTH);
       if (olsrMessageCache.m_messageHeader.m_messageType != TS_MESSAGE
           && 0 == olsrMessageCache.m_messageHeader.m_timeToLive)
@@ -1864,6 +1912,12 @@ void olsrSendTask(void *ptr) {
       if (olsrMessageCache.m_messageHeader.m_messageType == TS_MESSAGE)
         txpacket.fcf_s.reserved = 1;
     }
+    // if(olsrMessageCache.m_messageHeader.m_messageType==DATA_MESSAGE)
+    // {
+    //   olsrDataMessage_t* dataMsg = (olsrDataMessage_t *)olsrMessageCache.m_messagePayload;
+    //   DEBUG_PRINT_OLSR_ROUTING("forwarding,the dest is:%d,the next is:%d,the seq is:%d\n",olsrMessageCache.m_messageHeader.m_destinationAddress,dataMsg->m_dataHeader.m_nextHop,dataMsg->m_dataHeader.m_seq);
+
+    // }
     ASSERT(writePosition - (uint8_t *) olsrPacket > sizeof(olsrPacketHeader_t));
     olsrPacket->m_packetHeader.m_packetLength = writePosition - (uint8_t *) olsrPacket;
     olsrPacket->m_packetHeader.m_packetSeq = getPacketSeqNumber();
@@ -1876,7 +1930,7 @@ void olsrSendTask(void *ptr) {
     dwSetData(dwm, (uint8_t *) &txpacket, MAC802154_HEADER_LENGTH + olsrPacket->m_packetHeader.m_packetLength);
     dwStartTransmit(dwm);
     DEBUG_PRINT_OLSR_SEND("PktSend!Len:%d\n", MAC802154_HEADER_LENGTH + olsrPacket->m_packetHeader.m_packetLength);
-    vTaskDelay(700);
+    vTaskDelay(70);
   }
 }
 void olsrRecvTask(void *ptr) {

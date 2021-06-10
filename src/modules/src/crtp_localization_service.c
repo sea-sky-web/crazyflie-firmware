@@ -40,7 +40,7 @@
 #include "worker.h"
 #include "lighthouse_storage.h"
 
-#include "adhocdeck.h"
+#include "locodeck.h"
 
 #include "estimator.h"
 #include "quatcompress.h"

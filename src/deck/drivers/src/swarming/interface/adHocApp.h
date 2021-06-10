@@ -3,8 +3,8 @@
 #include "FreeRTOS.h"
 #include "olsrPacket.h"
 
-#define ADHOC_RX_QUEUE_SIZE 2
-#define ADHOC_MAX_PORT_NUM 4
+#define ADHOC_RX_QUEUE_SIZE 10
+#define ADHOC_MAX_PORT_NUM 1
 typedef enum {
   ADHOC_PORT_END_TO_END_DELAY         = 0x00,
 } AdHocPort;

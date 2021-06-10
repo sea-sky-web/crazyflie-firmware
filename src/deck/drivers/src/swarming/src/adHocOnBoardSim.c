@@ -16,14 +16,15 @@
 
 static bool adjMatrices[USE_NUM][USE_NUM] = {{0,1,0,0,1},\
                                              {1,0,1,0,0},\
-                                             {0,1,0,1,0},\
+                                            {0,1,0,1,0},\
                                              {0,0,1,0,1},\
-                                             {1,0,0,1,0}};
-static int16_t distanceMatrices[USE_NUM][USE_NUM] =  {{0,400,800,0,800},\
-                                                      {400,0,400,0,0},\
-                                                      {800,400,0,100,0},\
-                                                      {0,0,100,0,800},\
+                                             {1,0,0,1,0}}; 
+static int16_t distanceMatrices[USE_NUM][USE_NUM] =  {{0,100,700,1200,800},\
+                                                      {100,0,100,0,0},\
+                                                      {700,100,0,100,0},\
+                                                      {1200,0,100,0,800},\
                                                       {800,0,0,800,0}};
+
 short hashTable[MAX_CF_NUM];
 void initSimTopology()
 {
@@ -31,9 +32,9 @@ void initSimTopology()
     {
         hashTable[i] = -1;
     }
-    hashTable[14] = 0;
-    hashTable[28] = 1;
-    hashTable[29] = 2;
+    hashTable[9] = 0;
+    hashTable[5] = 1;
+    hashTable[21] = 2;
 }
 
 bool checkItCanReceive(olsrAddr_t from,olsrAddr_t to)

@@ -63,7 +63,7 @@ static void olsrTsTaskInit()
 static void olsrSendTaskInit(dwDevice_t *dev)
 {
   DEBUG_PRINT_OLSR_SYSTEM("START_OLSR_SEND_TASK_INIT\n");
-  if(xTaskCreate(olsrSendTask, "OLSR_SEND", 2*configMINIMAL_STACK_SIZE, dev,LPS_DECK_TASK_PRI, NULL)==pdPASS)
+  if(xTaskCreate(olsrSendTask, "OLSR_SEND", 2*configMINIMAL_STACK_SIZE, dev,3, NULL)==pdPASS)
     {
       DEBUG_PRINT_OLSR_SYSTEM("SEND TASK CREATE SUCCESSFUL\n");
     }
@@ -118,7 +118,7 @@ static void olsrTaskInit(dwDevice_t *dev)
     olsrSendTaskInit(dev);
     olsrRecvTaskInit(dev);
     olsrAppTaskInit();
-    // initSimTopology();
+    initSimTopology();
 }
 
 static void olsrInit(dwDevice_t *dev) 
@@ -128,7 +128,7 @@ static void olsrInit(dwDevice_t *dev)
     int myChanel = configblockGetRadioChannel();
     myAddress = myChanel|0x0000;
     olsrStructInit(dev);
-    olsrTaskInit(dev);
+    olsrTaskInit(dev);//
 }
 
 static bool isRangingOk()
