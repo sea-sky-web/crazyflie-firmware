@@ -117,8 +117,8 @@ static void olsrTaskInit(dwDevice_t *dev)
     olsrTsTaskInit();
     olsrSendTaskInit(dev);
     olsrRecvTaskInit(dev);
-    olsrAppTaskInit();
-    initSimTopology();
+//    olsrAppTaskInit();
+//    initSimTopology();
 }
 
 static void olsrInit(dwDevice_t *dev) 
