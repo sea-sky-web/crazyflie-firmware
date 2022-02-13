@@ -46,6 +46,7 @@
 #include "param.h"
 #include "pm.h"
 #include "app_channel.h"
+#include "system.h"
 
 
 #define DEBUG_MODULE "APPAPI"
@@ -128,8 +129,16 @@ void appMain() {
   // App-channel
   {
     char buffer[APPCHANNEL_MTU];
-    appchannelSendPacket("hello", 5);
-    appchannelReceivePacket(buffer, APPCHANNEL_MTU, APPCHANNEL_WAIT_FOREVER);
+    appchannelSendPacket("hello", 5); // Deprecated
+    appchannelSendDataPacketBlock("hello", 5);
+    appchannelSendDataPacket("hello", 5);
+    appchannelReceivePacket(buffer, APPCHANNEL_MTU, APPCHANNEL_WAIT_FOREVER); // Deprecated
+    appchannelReceiveDataPacket(buffer, APPCHANNEL_MTU, APPCHANNEL_WAIT_FOREVER);
     appchannelHasOverflowOccured();
+  }
+
+  // System
+  {
+    systemRequestShutdown();
   }
 }
