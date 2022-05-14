@@ -62,10 +62,10 @@ If you have any question, please issue the project or [email](mailto:shanfeng@se
                     href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=YuchaoS" title="code">💻</a>
             </td> </a></td>
             <td align="center">
-                <a href="https://github.com/inf1nityhhd"><img alt=""
-                        src="https://avatars.githubusercontent.com/inf1nityhhd"
-                        width="100px;"><br><sub><b>inf1nityhhd</b></sub></a><br><a
-                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=inf1nityhhd"
+                <a href="https://github.com/huohaodong"><img alt=""
+                        src="https://avatars.githubusercontent.com/huohaodong"
+                        width="100px;"><br><sub><b>huohaodong</b></sub></a><br><a
+                    href="https://github.com/SEU-NetSI/crazyflie-firmware/commits?author=huohaodong"
                     title="code">💻</a>
             </td> </a></td>
             <td align="center">

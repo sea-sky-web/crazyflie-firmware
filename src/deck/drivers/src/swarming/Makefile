@@ -1,4 +1,5 @@
 VPATH += src/
+CFLAGS += -fcommon
 PROJ_OBJ += uwbOlsr.o
 PROJ_OBJ += olsrAlgo.o
 PROJ_OBJ += olsrStruct.o
