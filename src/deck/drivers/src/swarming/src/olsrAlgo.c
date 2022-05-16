@@ -1930,7 +1930,7 @@ void olsrSendTask(void *ptr) {
     dwSetData(dwm, (uint8_t *) &txpacket, MAC802154_HEADER_LENGTH + olsrPacket->m_packetHeader.m_packetLength);
     dwStartTransmit(dwm);
     DEBUG_PRINT_OLSR_SEND("PktSend!Len:%d\n", MAC802154_HEADER_LENGTH + olsrPacket->m_packetHeader.m_packetLength);
-    vTaskDelay(70);
+    vTaskDelay(1);
   }
 }
 void olsrRecvTask(void *ptr) {
