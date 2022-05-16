@@ -1515,20 +1515,20 @@ void olsrSendHello()
               continue;
             }
         } //TODO -1 in queue will be not dropped
-        olsrLinkMessage_t linkMessage;//6
-        linkMessage.m_linkCode = (linkType & 0x03) | ((nbType << 2) & 0x0f);
-        linkMessage.m_addressUsedSize = 1;
-        linkMessage.m_addresses = olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr;
-        #ifdef USER_ROUTING 
-        //int16_t distTmp = getDistanceFromAddr(linkMessage.m_addresses);
-        // float lostrate=distanceToPacketLoss(distTmp);
-        // linkMessage.m_weight=1-lostrate;
-        linkMessage.m_weight = distanceToWeight(getDistanceFromAddr(olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr));
-       // DEBUG_PRINT_OLSR_ROUTING("to %d's distance is %d,weight is:%f\n",linkMessage.m_addresses,distTmp,linkMessage.m_weight);
-        #endif
-        if(helloMessage.m_helloHeader.m_linkMessageNumber==LINK_MESSAGE_MAX_NUM) break;
-        helloMessage.m_linkMessage[helloMessage.m_helloHeader.m_linkMessageNumber++] = linkMessage;
-        linkTupleIndex = olsrLinkSet.setData[linkTupleIndex].next;
+      olsrLinkMessage_t linkMessage;//6
+      linkMessage.m_linkCode = (linkType & 0x03) | ((nbType << 2) & 0x0f);
+      linkMessage.m_addressUsedSize = 1;
+      linkMessage.m_addresses = olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr;
+      #ifdef USER_ROUTING 
+      //int16_t distTmp = getDistanceFromAddr(linkMessage.m_addresses);
+      // float lostrate=distanceToPacketLoss(distTmp);
+      // linkMessage.m_weight=1-lostrate;
+      linkMessage.m_weight = distanceToWeight(getDistanceFromAddr(olsrLinkSet.setData[linkTupleIndex].data.m_neighborAddr));
+      // DEBUG_PRINT_OLSR_ROUTING("to %d's distance is %d,weight is:%f\n",linkMessage.m_addresses,distTmp,linkMessage.m_weight);
+      #endif
+      helloMessage.m_linkMessage[helloMessage.m_helloHeader.m_linkMessageNumber++] = linkMessage;
+      linkTupleIndex = olsrLinkSet.setData[linkTupleIndex].next;
+      if(helloMessage.m_helloHeader.m_linkMessageNumber==LINK_MESSAGE_MAX_NUM) break;
     }
   uint16_t writeSize = sizeof(olsrHelloMessageHeader_t)+helloMessage.m_helloHeader.m_linkMessageNumber*\
                        sizeof(olsrLinkMessage_t);
