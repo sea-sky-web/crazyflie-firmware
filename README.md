@@ -1,7 +1,9 @@
 ## Ultra-Wideband Swarm Ranging
-This repository contains the implementation of the paper:  
-**Ultra-Wideband Swarm Ranging**. [Feng Shan](http://twinhorse.net/), Jiaxin Zeng, Zengbao Li, [Junzhou Luo](https://cse.seu.edu.cn/2019/0102/c23024a257045/page.htm), [Weiwei Wu](https://cse.seu.edu.cn/2019/0103/c23024a257230/page.htm). *INFOCOM 2021*. [PDF](http://twinhorse.net/papers/SZLLW-INFOCOM21p.pdf),  
-which proposed a UWB-based ranging protocol for dynamic and dense swarm of robots and devices.
+The **Swarm Ranging Protocol** is a UWB-based ranging protocol that dedicates to provide a simple yet efficient ranging experience for dynamic and dense swarm networks of robots and devices. 
+
+This repository contains the implementation of the paper:
+- **Ultra-Wideband Swarm Ranging**. [Feng Shan](http://twinhorse.net/), Jiaxin Zeng, Zengbao Li, [Junzhou Luo](https://cse.seu.edu.cn/2019/0102/c23024a257045/page.htm), [Weiwei Wu](https://cse.seu.edu.cn/2019/0103/c23024a257230/page.htm). *INFOCOM 2021*. [PDF](http://twinhorse.net/papers/SZLLW-INFOCOM21p.pdf)  
+- **Ultra-Wideband Swarm Ranging Protocol for Dynamic and Dense Networks**. [Feng Shan](http://twinhorse.net/), Haodong Huo, Jiaxin Zeng, Zengbao Li, [Weiwei Wu](https://cse.seu.edu.cn/2019/0103/c23024a257230/page.htm), [Junzhou Luo](https://cse.seu.edu.cn/2019/0102/c23024a257045/page.htm). *IEEE/ACM Transactions on Networking, 2022*. [PDF](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9810917)
 
 > This repository is forked from the [official firmware by Bitcraze](https://github.com/bitcraze/crazyflie-firmware) and all our work is stored in the folder `crazyflie-firmware/src/deck/drivers/src/swarming`.  
 > If you find any error, please don't hesitate to open an issue or pull request.
