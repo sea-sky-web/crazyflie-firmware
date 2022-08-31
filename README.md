@@ -6,7 +6,7 @@ which proposed a UWB-based ranging protocol for dynamic and dense swarm of robot
 > This repository is forked from the [official firmware by Bitcraze](https://github.com/bitcraze/crazyflie-firmware) and all our work is stored in the folder `crazyflie-firmware/src/deck/drivers/src/swarming`.  
 > If you find any error, please don't hesitate to open an issue or pull request.
 
-If you find this repository helpful for your work, please kindly cite the following paper. The Bibtex is listed below:
+If you find this repository helpful for your work, please kindly cite the following paper. The BibTeX is listed below:
 
 ```
 @article{shan2021ultra,
@@ -15,6 +15,14 @@ If you find this repository helpful for your work, please kindly cite the follow
   booktitle={IEEE INFOCOM 2021-IEEE Conference on Computer Communications},
   year={2021},
   organization={IEEE}
+}
+
+@article{shan2022ultra,
+  title={Ultra-Wideband Swarm Ranging Protocol for Dynamic and Dense Networks},
+  author={Shan, Feng and Huo, Haodong and Zeng, Jiaxin and Li, Zengbao and Wu, Weiwei and Luo, Junzhou},
+  journal={IEEE/ACM Transactions on Networking},
+  year={2022},
+  publisher={IEEE}
 }
 ```
 
